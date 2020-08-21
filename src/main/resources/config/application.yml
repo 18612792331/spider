@@ -1,0 +1,10 @@
+spring:
+  data:
+    mongodb:
+#      uri: mongodb://admin:gao1teng8@127.0.0.1:27017
+      uri: mongodb://admin:gao1teng8@123.57.203.72:27017
+
+      database: znyulu
+
+server:
+  port: 8002
