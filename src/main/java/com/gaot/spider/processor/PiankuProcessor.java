@@ -2,14 +2,14 @@ package com.gaot.spider.processor;
 
 import com.gaot.spider.domin.Grade;
 import com.gaot.spider.download.PiankuDownloader;
-import com.gaot.spider.pipeline.PiankuPianline;
-import com.sun.deploy.security.BadCertificateDialog;
+import com.gaot.spider.pipeline.PiankuPipeline;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
-import us.codecraft.webmagic.pipeline.JsonFilePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 public class PiankuProcessor implements PageProcessor {
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     private Integer i = 1;
 
@@ -32,11 +35,11 @@ public class PiankuProcessor implements PageProcessor {
             .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36");
     @Override
     public void process(Page page) {
-        if (page.getUrl().regex("https://www\\.pianku\\.tv/mv/------\\d+\\.html").toString() != null) {
+        if (page.getUrl().regex("https://www\\.pianku\\.tv/mv/------\\d+\\.html").match()) {
             System.out.println("第一层 ：" + page.getUrl().toString());
             dyList(page);
 
-        } else if (page.getUrl().regex("https://www\\.pianku\\.tv/mv/(.{10})\\.html").toString() != null){
+        } else if (page.getUrl().regex("https://www\\.pianku\\.tv/mv/(.{10})\\.html").match()){
             System.out.println("第二层：" + page.getUrl().toString());
             dyDetail(page);
         }
@@ -49,15 +52,14 @@ public class PiankuProcessor implements PageProcessor {
     // 爬取电影列表页
     public void dyList(Page page) {
         List<String> all = page.getHtml().xpath("//div[@class='li-img cover']/a/@href").all();
-        System.out.println("size :" + all.size());
         all.forEach(data->{
-            System.out.println(baseUrl + data);
             String url = baseUrl + data;
             page.addTargetRequest(new Request(url).setPriority(1));
         });
     }
 
     public void dyDetail(Page page) {
+
         System.out.println("----------------------------------" + i + "--------------------------------------------");
         String name = page.getHtml().xpath("//h1/text()").toString();
         if (StringUtils.isNotBlank(name)) page.putField("name", page.getHtml().xpath("//h1/text()").toString()); // 片名
@@ -68,8 +70,8 @@ public class PiankuProcessor implements PageProcessor {
         if (scriptwriters.size()>0) page.putField("scriptwriter", scriptwriters);  // 编剧
         List<String> actor = page.getHtml().xpath("//div[@class='main-ui-meta']/div[4]//a/text()").all();
         if (actor.size() > 0) page.putField("actor", actor); // 主演
-        List<String> type = page.getHtml().xpath("//div[@class='main-ui-meta']/div[5]//a/text()").all();
-        if (type.size() > 0) page.putField("type", type); // 类型
+        List<String> genre = page.getHtml().xpath("//div[@class='main-ui-meta']/div[5]//a/text()").all();
+        if (genre.size() > 0) page.putField("genre", genre); // 类型
         List<String> area = page.getHtml().xpath("//div[@class='main-ui-meta']/div[6]//a/text()").all();
         if (area.size()>0) page.putField("area", area); // 地区
         List<String> language = page.getHtml().xpath("//div[@class='main-ui-meta']/div[7]//a/text()").all();
@@ -146,6 +148,6 @@ public class PiankuProcessor implements PageProcessor {
         String url="https://www.pianku.tv/mv/------1.html";
         PiankuDownloader downloader = new PiankuDownloader();
 //        downloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("125.117.133.182", 9000)));
-        Spider.create(new PiankuProcessor()).setDownloader(downloader).addPipeline(new PiankuPianline()).addUrl(url).thread(1).run();
+        Spider.create(new PiankuProcessor()).setDownloader(downloader).addPipeline(new PiankuPipeline()).addUrl(url).thread(1).run();
     }
 }
