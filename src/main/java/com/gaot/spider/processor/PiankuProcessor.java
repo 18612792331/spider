@@ -34,6 +34,8 @@ public class PiankuProcessor implements PageProcessor {
 
     private String baseUrl = "https://www.pianku.tv";
 
+    private String resourceUrl = "https://www.pianku.tv/ajax/downurl/";
+
     private final String DYCODE = "mv";
 
     private Site site = Site.me().setRetryTimes(5).setSleepTime(1000).setTimeOut(10000)
@@ -48,11 +50,23 @@ public class PiankuProcessor implements PageProcessor {
         } else if (page.getUrl().regex("https://www\\.pianku\\.tv/mv/(.{10})\\.html").match()){
             System.out.println("第二层：" + page.getUrl().toString());
             dyDetail(page);
+        } else if (page.getUrl().regex("https://www\\.pianku\\.tv/ajax/downurl/(.{10})_mv/").match()) {
+            System.out.println("视频资源======================");
+            resourceList(page);
         }
 
 
 
 
+    }
+
+    // 在线和下载资源
+    public void resourceList(Page page){
+        System.out.println(page.getHtml().toString());
+        MediaData mediaData = (MediaData) page.getRequest().getExtra("model");
+        System.out.println("===========================================================================================================");
+        System.out.println(mediaData.toString());
+//        page.get
     }
 
     // 爬取电影列表页
@@ -144,9 +158,13 @@ public class PiankuProcessor implements PageProcessor {
         }
         String introduce = page.getHtml().xpath("//p[@class='sqjj_a']/text()").toString();
         if (StringUtils.isNotBlank(introduce)) mediaData.setIntroduce(introduce);
-        System.out.println(mediaData.toString());
         mongoTemplate.save(mediaData);
         System.out.println("id===============================" + mediaData.getId());
+        String currentUrl = page.getUrl().toString();
+        String suffix = currentUrl.substring(currentUrl.lastIndexOf("/")+1, currentUrl.lastIndexOf(".")) + "_mv/";
+
+        String rPath = resourceUrl + suffix;
+        page.addTargetRequest(new Request(rPath).setPriority(2).putExtra("model", mediaData));
 
         i++;
     }

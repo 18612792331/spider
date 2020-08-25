@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import us.codecraft.webmagic.Spider;
 
+import java.util.regex.Pattern;
+
 @RestController
 @RequestMapping("/api")
 public class TestResource {
@@ -17,7 +19,10 @@ public class TestResource {
     private MongoTemplate mongoTemplate;
 
     public static void main(String[] args) {
-        System.out.println(2%3);
+        String aa = "https://www.pianku.tv/ajax/downurl/wNjRDZrhja_mv";
+        String pattern = "https://www\\.pianku\\.tv/ajax/downurl/(.{10})_mv";
+        boolean isMatch = Pattern.matches(pattern, aa);
+        System.out.println(isMatch);
     }
     String url="https://www.pianku.tv/mv/------1.html";
 
