@@ -1,11 +1,13 @@
 package com.gaot.spider.processor;
 
 import com.gaot.spider.domin.Grade;
+import com.gaot.spider.domin.MediaData;
 import com.gaot.spider.download.PiankuDownloader;
 import com.gaot.spider.pipeline.PiankuPipeline;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
@@ -19,10 +21,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class PiankuProcessor implements PageProcessor {
 
-    @Autowired
     private MongoTemplate mongoTemplate;
+
+    public void setMongoTemplate(MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
+    }
 
     private Integer i = 1;
 
@@ -60,28 +66,31 @@ public class PiankuProcessor implements PageProcessor {
 
     public void dyDetail(Page page) {
 
+        MediaData mediaData = new MediaData();
         System.out.println("----------------------------------" + i + "--------------------------------------------");
         String name = page.getHtml().xpath("//h1/text()").toString();
-        if (StringUtils.isNotBlank(name)) page.putField("name", page.getHtml().xpath("//h1/text()").toString()); // 片名
+        if (StringUtils.isNotBlank(name)) mediaData.setName(name); // 片名
         String year = page.getHtml().xpath("//h1/span/text()").toString();
-        if (StringUtils.isNotBlank(year)) page.putField("year", year.replaceAll("\\(", "").replaceAll("\\)", ""));
-        page.putField("videoUpdateDescript", page.getHtml().xpath("//div[@class='otherbox']/tidyText()").toString());
+        if (StringUtils.isNotBlank(year)) mediaData.setYear(Integer.valueOf(year.replaceAll("\\(", "").replaceAll("\\)", "")));
+        String videoUpdateDescript = page.getHtml().xpath("//div[@class='otherbox']/tidyText()").toString();
+        if (StringUtils.isNotBlank(videoUpdateDescript)) mediaData.setVideoUpdateDescript(videoUpdateDescript);
+
         List<String> scriptwriters = page.getHtml().xpath("//div[@class='main-ui-meta']/div[3]//a/text()").all();
-        if (scriptwriters.size()>0) page.putField("scriptwriter", scriptwriters);  // 编剧
+        if (scriptwriters.size()>0) mediaData.setScriptwriter(scriptwriters);  // 编剧
         List<String> actor = page.getHtml().xpath("//div[@class='main-ui-meta']/div[4]//a/text()").all();
-        if (actor.size() > 0) page.putField("actor", actor); // 主演
+        if (actor.size() > 0) mediaData.setActor(actor); // 主演
         List<String> genre = page.getHtml().xpath("//div[@class='main-ui-meta']/div[5]//a/text()").all();
-        if (genre.size() > 0) page.putField("genre", genre); // 类型
+        if (genre.size() > 0) mediaData.setGenre(genre); // 类型
         List<String> area = page.getHtml().xpath("//div[@class='main-ui-meta']/div[6]//a/text()").all();
         if (area.size()>0) page.putField("area", area); // 地区
         List<String> language = page.getHtml().xpath("//div[@class='main-ui-meta']/div[7]//a/text()").all();
-        if (language.size()>0) page.putField("language", language); // 语言
+        if (language.size()>0) mediaData.setLanguage(language); // 语言
         String releaseDateStr = page.getHtml().xpath("//div[@class='main-ui-meta']/div[8]/text()").toString();
-        if (StringUtils.isNotBlank(releaseDateStr)) page.putField("releaseDateStr", releaseDateStr); // 上映时间
+        if (StringUtils.isNotBlank(releaseDateStr)) mediaData.setReleaseDateStr(releaseDateStr); // 上映时间
         String time = page.getHtml().xpath("//div[@class='main-ui-meta']/div[9]/text()").toString();
-        if (StringUtils.isNotBlank(time)) page.putField("time", time); // 片长
+        if (StringUtils.isNotBlank(time)) mediaData.setTime(time); // 片长
         String alias = page.getHtml().xpath("//div[@class='main-ui-meta']/div[10]/text()").toString();
-        if (StringUtils.isNotBlank(alias)) page.putField("alias", alias);  //别名
+        if (StringUtils.isNotBlank(alias)) mediaData.setAlias(alias); //别名
 
         String douban = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='douban0']/a/text()").toString();
         if (StringUtils.isNotBlank(douban)) { // 豆瓣评分
@@ -93,11 +102,11 @@ public class PiankuProcessor implements PageProcessor {
             Grade entity = new Grade();
             entity.setGrade(grade);
             entity.setLink(link);
-            page.putField("douban", entity);
+            mediaData.setDouban(entity);
         } else {
             Grade entity = new Grade();
             entity.setGrade(0.0);
-            page.putField("douban", entity);
+            mediaData.setDouban(entity);
         }
         String imdb = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='imdb0']/a/text()").toString();
         if (StringUtils.isNotBlank(imdb)) {
@@ -109,7 +118,7 @@ public class PiankuProcessor implements PageProcessor {
             Grade entity = new Grade();
             entity.setGrade(grade);
             entity.setLink(link);
-            page.putField("imdb", entity);
+            mediaData.setImdb(entity);
         }
         String mtime = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='mtime0']/a/text()").toString();
         if (StringUtils.isNotBlank(mtime)) {
@@ -121,7 +130,7 @@ public class PiankuProcessor implements PageProcessor {
             Grade entity = new Grade();
             entity.setGrade(grade);
             if (StringUtils.isNotBlank(link)) entity.setLink(link);
-            page.putField("mtime", entity);
+            mediaData.setMtime(entity);
         }
 
         String lfq0 = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='lfq0']/a/text()").toString();
@@ -131,10 +140,13 @@ public class PiankuProcessor implements PageProcessor {
             Map<String, String> map = new HashMap<>();
             map.put("grade", grade);
             map.put("link", link);
-            page.putField("lfq", map);
+            mediaData.setLfq(map);
         }
         String introduce = page.getHtml().xpath("//p[@class='sqjj_a']/text()").toString();
-        if (StringUtils.isNotBlank(introduce)) page.putField("introduce", introduce);
+        if (StringUtils.isNotBlank(introduce)) mediaData.setIntroduce(introduce);
+        System.out.println(mediaData.toString());
+        mongoTemplate.save(mediaData);
+        System.out.println("id===============================" + mediaData.getId());
 
         i++;
     }
@@ -148,6 +160,6 @@ public class PiankuProcessor implements PageProcessor {
         String url="https://www.pianku.tv/mv/------1.html";
         PiankuDownloader downloader = new PiankuDownloader();
 //        downloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("125.117.133.182", 9000)));
-        Spider.create(new PiankuProcessor()).setDownloader(downloader).addPipeline(new PiankuPipeline()).addUrl(url).thread(1).run();
+//        Spider.create(new PiankuProcessor()).setDownloader(downloader).addPipeline(new PiankuPipeline()).addUrl(url).thread(1).run();
     }
 }
