@@ -55,6 +55,8 @@ public class MediaData {
 
     private String introduce;
 
+    private List<MediaDataResource> resources;
+
     public MediaData() {
     }
 
@@ -200,6 +202,14 @@ public class MediaData {
 
     public void setVideoUpdateDescript(String videoUpdateDescript) {
         this.videoUpdateDescript = videoUpdateDescript;
+    }
+
+    public List<MediaDataResource> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<MediaDataResource> resources) {
+        this.resources = resources;
     }
 
     @Override

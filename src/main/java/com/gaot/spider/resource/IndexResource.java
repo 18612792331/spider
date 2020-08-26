@@ -51,8 +51,8 @@ public class IndexResource {
         driver.manage().window().maximize();
         driver.get(url);
 
-        WebElement element = driver.findElementByClassName("down-list");
-        System.out.println(element.toString());
+
+        System.out.println(driver.getPageSource());
         long end = System.currentTimeMillis();
         System.out.println("===============耗时：" + (end - start)
                 + "===============");

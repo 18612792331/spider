@@ -5,6 +5,8 @@ import com.gaot.spider.domin.MediaData;
 import com.gaot.spider.download.PiankuDownloader;
 import com.gaot.spider.pipeline.PiankuPipeline;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
@@ -17,6 +19,7 @@ import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 import us.codecraft.webmagic.selector.Selectable;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,14 +62,40 @@ public class PiankuProcessor implements PageProcessor {
 
 
     }
+    Document doc = null;
 
     // 在线和下载资源
     public void resourceList(Page page){
-        System.out.println(page.getHtml().toString());
         MediaData mediaData = (MediaData) page.getRequest().getExtra("model");
         System.out.println("===========================================================================================================");
         System.out.println(mediaData.toString());
-//        page.get
+        List<String> titles = page.getHtml().xpath("//ul[@class='py-tabs']//li/text()").all();
+        List<Selectable> nodes = page.getHtml().xpath("//div[@class='bd']//ul").nodes();
+        for (int j = 0; j < titles.size() ; j++) {
+            String title = titles.get(j);
+            System.out.println(title);
+//            System.out.println(nodes.get(j).toString());
+            nodes.forEach(node->{
+                String linkTitle = node.xpath("//ul//li//a/text()").toString();
+                System.out.println(linkTitle);
+                String uri = node.xpath("//ul//li//a/@href").toString();
+                System.out.println(uri);
+                try {
+                    System.out.println(baseUrl + uri);
+
+                    doc = Jsoup.connect(baseUrl+uri).validateTLSCertificates(true).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();//模拟火狐浏览器
+                    System.out.println(doc.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            });
+//            List<String> uriList = nodes.get(i).xpath("//li/tidyText()").all();
+//            uriList.forEach(uri->{
+//                System.out.println(uri);
+//            });
+
+        }
     }
 
     // 爬取电影列表页
