@@ -1,91 +1,67 @@
 package com.gaot.spider.resource;
 
-import java.util.regex.Pattern;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.phantomjs.PhantomJSDriver;
-import org.openqa.selenium.phantomjs.PhantomJSDriverService;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import us.codecraft.webmagic.Page;
-import us.codecraft.webmagic.Request;
-import us.codecraft.webmagic.selector.PlainText;
+import java.util.*;
 
 public class IndexResource {
 
-    public static void main(String[] args) throws Exception {
-        String url = "https://www.pianku.tv/mv/wNnFGOjBza.html";
-        /*String pattern = "https://www\\.pianku\\.tv/mv/(.{10})\\.html";
-        boolean isMatch = Pattern.matches(pattern, url);
-        System.out.println(isMatch);*/
-        long start = System.currentTimeMillis();
-        /*String result = getAjaxContent("https://www.pianku.tv/mv/wNnFGOjBza.html");
-        System.out.println(result);
-        // 创建新文件
-        String path = "D:\\Download\\test.html";
-        PrintWriter printWriter = null;
-        printWriter = new PrintWriter(new FileWriter(new File(path)));
-        printWriter.write(result);
-        printWriter.close();*/
+    /**
+     * 获取页面文档字串(等待异步JS执行)
+     *
+     * @param url 页面URL
+     * @return
+     * @throws Exception
+     */
+    public static String getHtmlPageResponse(String url) throws Exception {
+        String result = "";
 
-        DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
-//ssl证书支持
-        desiredCapabilities.setCapability("acceptSslCerts", true);
-//截屏支持，这里不需要
-        desiredCapabilities.setCapability("takesScreenshot", false);
-//css搜索支持
-        desiredCapabilities.setCapability("cssSelectorsEnabled", true);
-//js支持
-        desiredCapabilities.setJavascriptEnabled(true);
-//驱动支持
-        desiredCapabilities.setCapability(PhantomJSDriverService.PHANTOMJS_EXECUTABLE_PATH_PROPERTY,
-                "D:/software/install/phantomjs-2.1.1-windows/bin/phantomjs.exe");
-//创建无界面浏览器对象
-        PhantomJSDriver driver = new PhantomJSDriver(desiredCapabilities);
-//这里注意，把窗口的大小调整为最大，如果不设置可能会出现元素不可用的问题
-        driver.manage().window().maximize();
-        driver.get(url);
+        final WebClient webClient = new WebClient(BrowserVersion.CHROME);
 
+        webClient.getOptions().setThrowExceptionOnScriptError(false);//当JS执行出错的时候是否抛出异常
+        webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);//当HTTP的状态非200时是否抛出异常
+        webClient.getOptions().setActiveXNative(false);
+        webClient.getOptions().setCssEnabled(false);//是否启用CSS
+        webClient.getOptions().setJavaScriptEnabled(true); //很重要，启用JS
+        webClient.setAjaxController(new NicelyResynchronizingAjaxController());//很重要，设置支持AJAX
 
-        System.out.println(driver.getPageSource());
-        long end = System.currentTimeMillis();
-        System.out.println("===============耗时：" + (end - start)
-                + "===============");
+        webClient.getOptions().setTimeout(30000);//设置“浏览器”的请求超时时间
+        webClient.setJavaScriptTimeout(30000);//设置JS执行的超时时间
 
-    }
-
-    public static String getAjaxContent(String url) throws Exception {
-        Runtime rt = Runtime.getRuntime();
-        Process p = rt
-                .exec("D:/software/install/phantomjs-2.1.1-windows/bin/phantomjs.exe D:/s.js "
-                        + url);
-        InputStream is = p.getInputStream();
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        StringBuffer sbf = new StringBuffer();
-        String tmp = "";
-        while ((tmp = br.readLine()) != null) {
-            sbf.append(tmp + "\n");
-        }
-        return sbf.toString();
-    }
-
-    public static Page download(Request request) {
-        Page page = new Page();
+        HtmlPage page;
         try {
-            String url = request.getUrl();
-            String html = getAjaxContent(url);
-            page.setRawText(html);
-            page.setUrl(new PlainText(url));
-            page.setRequest(request);
-            return page;
+            page = webClient.getPage(url);
         } catch (Exception e) {
-            System.out.println("download出错了!");
-            return page;
+            webClient.close();
+            throw e;
         }
+        webClient.waitForBackgroundJavaScript(30000);//该方法阻塞线程
+
+        result = page.asXml();
+        webClient.close();
+
+        return result;
+    }
+
+    //解析xml获取ImageUrl地址
+    public static List<String> getImageUrl(String html,String className){
+        List<String> result = new ArrayList<>();
+        Document document = Jsoup.parse(html);//获取html文档
+        List<Element> infoListEle = document.getElementsByClass(className);//获取元素节点等
+        infoListEle.forEach(element -> {
+            result.add(element.attr("src"));
+        });
+        return result;
+    }
+
+    public static void main(String[] args) throws Exception {
+        String xml = getHtmlPageResponse("https://www.pianku.tv/mv/wNnRGazQjZ.html");
+        System.out.println(xml);
     }
 }
