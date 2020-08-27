@@ -62,6 +62,8 @@ public class IndexResource {
 
     public static void main(String[] args) throws Exception {
         String xml = getHtmlPageResponse("https://www.pianku.tv/mv/wNnRGazQjZ.html");
+//        System.out.println(JSON.toJSONString(ReptilePicUtil.getImageUrl(xml,"index-logo-src")));
+        System.out.println("===================================================================================================");
         System.out.println(xml);
     }
 }
