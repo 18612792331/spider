@@ -2,27 +2,26 @@ package com.gaot.spider.processor;
 
 import com.gaot.spider.domin.Grade;
 import com.gaot.spider.domin.MediaData;
-import com.gaot.spider.download.PiankuDownloader;
-import com.gaot.spider.pipeline.PiankuPipeline;
+import com.gaot.spider.domin.MediaDataResource;
+import com.gaot.spider.domin.MediaDataResourceLink;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
-import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
-import us.codecraft.webmagic.proxy.Proxy;
-import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 import us.codecraft.webmagic.selector.Selectable;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class PiankuProcessor implements PageProcessor {
@@ -71,31 +70,49 @@ public class PiankuProcessor implements PageProcessor {
         System.out.println(mediaData.toString());
         List<String> titles = page.getHtml().xpath("//ul[@class='py-tabs']//li/text()").all();
         List<Selectable> nodes = page.getHtml().xpath("//div[@class='bd']//ul").nodes();
+        // 保存播放链接
+        List<MediaDataResource> resources = new ArrayList<>();
         for (int j = 0; j < titles.size() ; j++) {
+            MediaDataResource dataResource = new MediaDataResource();
             String title = titles.get(j);
+            dataResource.setLabel(title);
             System.out.println(title);
-//            System.out.println(nodes.get(j).toString());
+            List<MediaDataResourceLink> resourceLinks = new ArrayList<>();
             nodes.forEach(node->{
+                MediaDataResourceLink resourceLink = new MediaDataResourceLink();
                 String linkTitle = node.xpath("//ul//li//a/text()").toString();
                 System.out.println(linkTitle);
+                resourceLink.setTitle(linkTitle);
                 String uri = node.xpath("//ul//li//a/@href").toString();
                 System.out.println(uri);
                 try {
                     System.out.println(baseUrl + uri);
 
                     doc = Jsoup.connect(baseUrl+uri).validateTLSCertificates(true).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();//模拟火狐浏览器
-                    System.out.println(doc.toString());
+                    Pattern p= Pattern.compile("http.+\\.m3u8");
+                    String link = null;
+                    Matcher m=p.matcher(doc.toString());
+                    while(m.find()){
+
+                        link =m.group();
+                        System.out.println("link=  " + link);
+                        return;
+                    }
+                    resourceLink.setLink(link);
                 } catch (IOException e) {
+                    System.out.println(mediaData.getName() + "==========出错");
                     e.printStackTrace();
+
                 }
+                resourceLinks.add(resourceLink);
 
             });
-//            List<String> uriList = nodes.get(i).xpath("//li/tidyText()").all();
-//            uriList.forEach(uri->{
-//                System.out.println(uri);
-//            });
+
+            resources.add(dataResource);
 
         }
+        mediaData.setResources(resources);
+        mongoTemplate.save(mediaData);
     }
 
     // 爬取电影列表页
@@ -204,9 +221,81 @@ public class PiankuProcessor implements PageProcessor {
     }
 
     public static void main(String[] args) {
-        String url="https://www.pianku.tv/mv/------1.html";
-        PiankuDownloader downloader = new PiankuDownloader();
-//        downloader.setProxyProvider(SimpleProxyProvider.from(new Proxy("125.117.133.182", 9000)));
-//        Spider.create(new PiankuProcessor()).setDownloader(downloader).addPipeline(new PiankuPipeline()).addUrl(url).thread(1).run();
+        String str="<script>\n" +
+                "const dp = new DPlayer({\n" +
+                "    container: document.getElementById('video'),\n" +
+                "    screenshot: true,\n" +
+                "\tpreload: 'metadata',\n" +
+                "\tvolume: 1.0,\n" +
+                "    video: {\n" +
+                "        url: ''\n" +
+                "    }\n" +
+                "});\n" +
+                "geturl('https://diaoshi.dehua-kuyun.com/20200826/13743_98d2481a/index.m3u8');\n" +
+                "var pycount=9;\n" +
+                "function adremove(){$('#playad').remove();dp.play();}\n" +
+                "function jj(){\n" +
+                "if (pycount == 0){adremove();}else if(pycount>0){\n" +
+                "$('#pp>font').text(pycount);pycount -= 1;setTimeout(function () {jj(pycount);}, 1000);}\n" +
+                "}\n" +
+                "function geturl(url){if(url.indexOf('.m3u8')>=0){dp.switchVideo({url: url});}else{pyjs(url);}}\n" +
+                "function pyjs(url){\n" +
+                "$('#video').append('<div id=\"loading\" style=\"text-align:center;z-index:20;background-color:black;top: 0;position: absolute;display: table;width:100%;height:100%;font-size:16px;\"><div style=\"width:100%;height:100%;color:#999;display:table-cell;vertical-align: middle;\"><span class=\"tips\">正在加载中，请稍候...</div></div>');\n" +
+                "$.ajax({type:\"post\",url:'/playjson/index.php',data:{'url':url},dataType:'json',timeout:10000,success:function(data){\n" +
+                "if(data.code==200){\n" +
+                "var typer='auto';if(data.type=='hls'||data.type=='m3u8'){typer='hls';}dp.switchVideo({url: data.url,type:typer});\n" +
+                "}else{\n" +
+                "$('.tips').text('加载失败，请刷新重试或切换播放源');\n" +
+                "}},\n" +
+                "complete : function(XMLHttpRequest,status){\n" +
+                "if(status=='timeout'){\n" +
+                "$('.tips').text('请求超时，请刷新重试或切换播放源');\n" +
+                "}}});\n" +
+                "}\n" +
+                "dp.on('loadstart', function () {\n" +
+                "$.getScript('/ajax/historys/lNWZ0MWbkNmN_'+page+'/');\n" +
+                "$('#loading').remove();\n" +
+                "$('#video').append('<div id=\"playad\" style=\"background-color:black;z-index:99;top:0;position:absolute;width:100%;height:100%;\"><div id=\"pp\" style=\"position:absolute;z-index:100;color:#fff;padding:20px;right:0;\">广告倒计时 <font style=\"color:#f90;\"></font> 秒<button onclick=\"adremove()\" style=\"margin-left:20px;\">关闭广告</button></div><a href=\"https://www.yabo816.com\" target=\"_blank\" style=\"background:url(https://pic.gksec.com/2020/08/18/cd1157b8f4fba/dp.jpg) center center no-repeat;background-size:100% auto;width:100%;height:100%;display:block;\"></a></div>');\n" +
+                "jj();\n" +
+                "});\n" +
+                "var page=1;\n" +
+                "var videotime=0;\n" +
+                "dp.on('timeupdate', function () {\n" +
+                "videotime++;\n" +
+                "if(videotime==20){\n" +
+                "$.getScript('/ajax/historys/lNWZ0MWbkNmN_'+page+'_time_'+Math.round(dp.video.currentTime)+'_'+Math.round(dp.video.currentTime/dp.video.duration*100)+'/');\n" +
+                "}else if(videotime>150){\n" +
+                "videotime=0;\n" +
+                "}\n" +
+                "});\n" +
+                "setTimeout(function(){if(videotime==0){$.getScript('/ajax/historys/lNWZ0MWbkNmN_'+page+'_time_0_0/');}}, 5000);\n" +
+                "$(\".box_con a\").click(function(){\n" +
+                "window.location.replace($(this).attr('href'));\n" +
+                "return false;\n" +
+                "});\n" +
+                "</script>\n" +
+                "<footer>\n" +
+                "<a class=\"to-top\"><span class=\"icon-chevron-thin-up\"></span></a>\n" +
+                "<div class=\"footer1\">\n" +
+                "本站所有资源均收集自互联网，没有提供影片资源存储，也未参与录制、上传。若本站收录的资源涉及您的版权或知识产权或其他利益，请附上版权证明邮件告知。<span class=\"right\"><a href=\"javascript:;\" onclick=\"xtip.alert('邮箱：pianku\uD83D\uDE03protonmail.com<br>注意：\uD83D\uDE03=@')\">获取邮箱</a> · PiANKU · 8.5ms</span>\n" +
+                "</div>\n" +
+                "</footer>\n" +
+                "<!--[if lt IE 8]>\n" +
+                "<script>window.location = '/browser.html';</script>\n" +
+                "<![endif]-->\n" +
+                "<script type=\"text/javascript\">\n" +
+                "function check_webp(){return document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') == 0;}\n" +
+                "FunLazy({\n" +
+                "placeholder: '/static/css/l.gif',\n" +
+                "beforeLazy: function(src){if(check_webp()){src=src.replace(\".jpg\",\".webp\");}return src;}\n" +
+                "});\n" +
+                "$('.to-top').toTop();$('header').scrollupbar();\n" +
+                "</script>";
+        Pattern p= Pattern.compile("http.+\\.m3u8");
+        Matcher m=p.matcher(str);
+        while(m.find()){
+            System.out.println(m.group());
+        }
+
     }
 }

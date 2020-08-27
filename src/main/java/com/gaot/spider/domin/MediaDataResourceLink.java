@@ -4,8 +4,8 @@ public class MediaDataResourceLink {
     private String title;
     private String link;
 
-    public MediaDataResourceLink(String title) {
-        this.title = title;
+    public MediaDataResourceLink() {
+
     }
 
     public String getTitle() {

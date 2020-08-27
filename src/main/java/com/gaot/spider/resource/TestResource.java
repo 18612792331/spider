@@ -30,7 +30,7 @@ public class TestResource {
     public void test() {
         PiankuProcessor processor = new PiankuProcessor();
         processor.setMongoTemplate(mongoTemplate);
-        Spider.create(processor).setDownloader(new PiankuDownloader()).addPipeline(new PiankuPipeline()).addUrl(url).thread(1).run();
+        Spider.create(processor).setDownloader(new PiankuDownloader()).addUrl(url).thread(1).run();
     }
 
 }
