@@ -88,6 +88,6 @@ public class EscapeUnescapeUtils {
     }
 
     public static void main(String[] args) {
-        System.out.println(unescape("HC%24https%3A%2F%2Fv4.szjal.cn%2F20200820%2Fwlh56PKg%2Findex.m3u8%24%24%24HD%24https%3A%2F%2Ffangao.qfxmj.com%2Fconcat%2F20200823%2Fd5743a775c0b43f6bbb5c7eae8ea414c%2Fcloudv-transfer%2F5555555561rqq82q55569265os3711n6_e5b880e0c3074fa4a66b5577f11dc518_0_3.m3u8"));
+        System.out.println(unescape("UFld3d3LnN1Ym9mbS5jb209MTU5ODUxNDE5MQ=="));
     }
 }
