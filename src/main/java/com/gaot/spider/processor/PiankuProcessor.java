@@ -1,6 +1,5 @@
 package com.gaot.spider.processor;
 
-import com.gaot.spider.domin.Grade;
 import com.gaot.spider.domin.MediaData;
 import com.gaot.spider.domin.MediaDataResource;
 import com.gaot.spider.domin.MediaDataResourceLink;
@@ -88,7 +87,7 @@ public class PiankuProcessor implements PageProcessor {
                 try {
                     System.out.println(baseUrl + uri);
 
-                    doc = Jsoup.connect(baseUrl+uri).validateTLSCertificates(true).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();//模拟火狐浏览器
+                    doc = Jsoup.connect(baseUrl+uri).validateTLSCertificates(true).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();
                     Pattern p= Pattern.compile("http.+\\.m3u8");
                     String link = null;
                     Matcher m=p.matcher(doc.toString());
@@ -135,12 +134,6 @@ public class PiankuProcessor implements PageProcessor {
         String videoUpdateDescript = page.getHtml().xpath("//div[@class='otherbox']/tidyText()").toString();
         if (StringUtils.isNotBlank(videoUpdateDescript)) mediaData.setVideoUpdateDescript(videoUpdateDescript);
 
-        List<String> scriptwriters = page.getHtml().xpath("//div[@class='main-ui-meta']/div[3]//a/text()").all();
-        if (scriptwriters.size()>0) mediaData.setScriptwriter(scriptwriters);  // 编剧
-        List<String> actor = page.getHtml().xpath("//div[@class='main-ui-meta']/div[4]//a/text()").all();
-        if (actor.size() > 0) mediaData.setActor(actor); // 主演
-        List<String> genre = page.getHtml().xpath("//div[@class='main-ui-meta']/div[5]//a/text()").all();
-        if (genre.size() > 0) mediaData.setGenre(genre); // 类型
         List<String> area = page.getHtml().xpath("//div[@class='main-ui-meta']/div[6]//a/text()").all();
         if (area.size()>0) page.putField("area", area); // 地区
         List<String> language = page.getHtml().xpath("//div[@class='main-ui-meta']/div[7]//a/text()").all();
@@ -159,14 +152,9 @@ public class PiankuProcessor implements PageProcessor {
                 grade = Double.valueOf(douban.split(" ")[1]);
             }
             String link = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='douban0']/a/@href").toString();
-            Grade entity = new Grade();
-            entity.setGrade(grade);
-            entity.setLink(link);
-            mediaData.setDouban(entity);
+
         } else {
-            Grade entity = new Grade();
-            entity.setGrade(0.0);
-            mediaData.setDouban(entity);
+
         }
         String imdb = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='imdb0']/a/text()").toString();
         if (StringUtils.isNotBlank(imdb)) {
@@ -175,10 +163,7 @@ public class PiankuProcessor implements PageProcessor {
                 grade = Double.valueOf(imdb.split(" ")[1]);
             }
             String link = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='imdb0']/a/@href").toString();
-            Grade entity = new Grade();
-            entity.setGrade(grade);
-            entity.setLink(link);
-            mediaData.setImdb(entity);
+
         }
         String mtime = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='mtime0']/a/text()").toString();
         if (StringUtils.isNotBlank(mtime)) {
@@ -187,10 +172,7 @@ public class PiankuProcessor implements PageProcessor {
                 grade = Double.valueOf(mtime.split(" ")[1]);
             }
             String link = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='mtime']/a/@href").toString();
-            Grade entity = new Grade();
-            entity.setGrade(grade);
-            if (StringUtils.isNotBlank(link)) entity.setLink(link);
-            mediaData.setMtime(entity);
+
         }
 
         String lfq0 = page.getHtml().xpath("//div[@class='main-ui-meta']/div[11]/div[@class='lfq0']/a/text()").toString();
@@ -200,7 +182,7 @@ public class PiankuProcessor implements PageProcessor {
             Map<String, String> map = new HashMap<>();
             map.put("grade", grade);
             map.put("link", link);
-            mediaData.setLfq(map);
+
         }
         String introduce = page.getHtml().xpath("//p[@class='sqjj_a']/text()").toString();
         if (StringUtils.isNotBlank(introduce)) mediaData.setIntroduce(introduce);

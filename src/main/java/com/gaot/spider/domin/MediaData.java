@@ -5,7 +5,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @program: spider
@@ -23,18 +22,22 @@ public class MediaData {
 
     private String name;
 
+    private String cover;
+
     private Integer year;
+
+    private String state;
 
     @Field("video_update_descript")
     private String videoUpdateDescript;
 
-    private List<String> scriptwriter; // 编剧
+    private String director; // 导演
 
-    private List<String> actor; // 主演
+    private String[] actor; // 主演
 
-    private List<String> genre; // 类型
+    private String genre; // 类型
 
-    private List<String> area; // 地区
+    private String area; // 地区
 
     private List<String> language;
 
@@ -44,14 +47,6 @@ public class MediaData {
     private String time; // 片场
 
     private String alias; // 别名
-
-    private Grade douban;
-
-    private Grade imdb;
-
-    private Grade mtime;
-
-    private Map<String, String> lfq;
 
     private String introduce;
 
@@ -68,12 +63,28 @@ public class MediaData {
         this.id = id;
     }
 
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
     public Integer getType() {
         return type;
     }
 
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    public String getCover() {
+        return cover;
+    }
+
+    public void setCover(String cover) {
+        this.cover = cover;
     }
 
     public String getName() {
@@ -92,35 +103,27 @@ public class MediaData {
         this.year = year;
     }
 
-    public List<String> getScriptwriter() {
-        return scriptwriter;
+    public String getDirector() {
+        return director;
     }
 
-    public void setScriptwriter(List<String> scriptwriter) {
-        this.scriptwriter = scriptwriter;
+    public void setDirector(String director) {
+        this.director = director;
     }
 
-    public List<String> getActor() {
+    public String[] getActor() {
         return actor;
     }
 
-    public void setActor(List<String> actor) {
+    public void setActor(String[] actor) {
         this.actor = actor;
     }
 
-    public List<String> getGenre() {
-        return genre;
-    }
-
-    public void setGenre(List<String> genre) {
-        this.genre = genre;
-    }
-
-    public List<String> getArea() {
+    public String getArea() {
         return area;
     }
 
-    public void setArea(List<String> area) {
+    public void setArea(String area) {
         this.area = area;
     }
 
@@ -156,38 +159,6 @@ public class MediaData {
         this.alias = alias;
     }
 
-    public Grade getDouban() {
-        return douban;
-    }
-
-    public void setDouban(Grade douban) {
-        this.douban = douban;
-    }
-
-    public Grade getImdb() {
-        return imdb;
-    }
-
-    public void setImdb(Grade imdb) {
-        this.imdb = imdb;
-    }
-
-    public Grade getMtime() {
-        return mtime;
-    }
-
-    public void setMtime(Grade mtime) {
-        this.mtime = mtime;
-    }
-
-    public Map<String, String> getLfq() {
-        return lfq;
-    }
-
-    public void setLfq(Map<String, String> lfq) {
-        this.lfq = lfq;
-    }
-
     public String getIntroduce() {
         return introduce;
     }
@@ -212,6 +183,14 @@ public class MediaData {
         this.resources = resources;
     }
 
+    public String getGenre() {
+        return genre;
+    }
+
+    public void setGenre(String genre) {
+        this.genre = genre;
+    }
+
     @Override
     public String toString() {
         return "MediaData{" +
@@ -220,7 +199,6 @@ public class MediaData {
                 ", name='" + name + '\'' +
                 ", year=" + year +
                 ", videoUpdateDescript='" + videoUpdateDescript + '\'' +
-                ", scriptwriter=" + scriptwriter +
                 ", actor=" + actor +
                 ", genre=" + genre +
                 ", area=" + area +
@@ -228,10 +206,6 @@ public class MediaData {
                 ", releaseDateStr='" + releaseDateStr + '\'' +
                 ", time='" + time + '\'' +
                 ", alias='" + alias + '\'' +
-                ", douban=" + douban +
-                ", imdb=" + imdb +
-                ", mtime=" + mtime +
-                ", lfq=" + lfq +
                 ", introduce='" + introduce + '\'' +
                 '}';
     }

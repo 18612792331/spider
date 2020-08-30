@@ -2,6 +2,7 @@ package com.gaot.spider.resource;
 
 import com.gaot.spider.download.PiankuDownloader;
 import com.gaot.spider.pipeline.PiankuPipeline;
+import com.gaot.spider.processor.AppMovieProcessor;
 import com.gaot.spider.processor.PiankuProcessor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -24,11 +25,11 @@ public class TestResource {
         boolean isMatch = Pattern.matches(pattern, aa);
         System.out.println(isMatch);
     }
-    String url="https://www.pianku.tv/mv/------1.html";
+    String url="https://app.movie/index.php/vod/show/by/time/id/1.html";
 
     @PostMapping("/test")
     public void test() {
-        PiankuProcessor processor = new PiankuProcessor();
+        AppMovieProcessor processor = new AppMovieProcessor();
         processor.setMongoTemplate(mongoTemplate);
         Spider.create(processor).setDownloader(new PiankuDownloader()).addUrl(url).thread(1).run();
     }

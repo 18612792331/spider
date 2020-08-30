@@ -1,10 +1,8 @@
 package com.gaot.spider.processor;
 
-import com.gaot.spider.domin.Grade;
 import com.gaot.spider.domin.MediaData;
 import com.gaot.spider.download.PiankuDownloader;
 import com.gaot.spider.resource.utils.HtmlunitUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -14,9 +12,7 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PiankuProcessor2 implements PageProcessor {
 
