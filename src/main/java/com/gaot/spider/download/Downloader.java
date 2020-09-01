@@ -31,7 +31,7 @@ import java.util.Map;
  * @author: Mr.Gaot
  * @create: 2020-08-21 17:16
  **/
-public class PiankuDownloader extends AbstractDownloader {
+public class Downloader extends AbstractDownloader {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
