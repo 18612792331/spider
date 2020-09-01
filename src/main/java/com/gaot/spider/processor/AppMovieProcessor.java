@@ -2,8 +2,7 @@ package com.gaot.spider.processor;
 
 import com.gaot.spider.domin.MediaData;
 import com.gaot.spider.domin.MediaDataResource;
-import com.gaot.spider.download.PiankuDownloader;
-import com.gargoylesoftware.htmlunit.javascript.host.media.MediaRecorder;
+import com.gaot.spider.domin.MediaDataResourceLink;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -13,13 +12,10 @@ import org.springframework.stereotype.Component;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
-import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
-
-import java.io.IOException;
-import java.time.Year;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,10 +28,22 @@ import java.util.List;
 @Component
 public class AppMovieProcessor implements PageProcessor {
 
+    private Integer type; //电影 1，剧集 2，综艺 3, 动漫 4
+
+    private Integer count;
+
     private MongoTemplate mongoTemplate;
 
     public void setMongoTemplate(MongoTemplate mongoTemplate) {
         this.mongoTemplate = mongoTemplate;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public void setCount(Integer count) {
+        this.count = count;
     }
 
     private Integer i = 2;
@@ -45,7 +53,7 @@ public class AppMovieProcessor implements PageProcessor {
             .setUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36");
     @Override
     public void process(Page page) {
-        if (page.getUrl().regex("https://app\\.movie/index\\.php/vod/show/(.+)html").match()) {
+        if (page.getUrl().regex("https://app\\.movie/index\\.php/vod/type/id/(.+)html").match()) {
             System.out.println("第一层 ：" + page.getUrl().toString());
             dyList(page);
 
@@ -57,12 +65,6 @@ public class AppMovieProcessor implements PageProcessor {
     }
 
     public void dyPlay(Page page) {
-        /*String links = page.getHtml().xpath("//div[@class='stui-player__video embed-responsive embed-responsive-16by9 clearfix']/script[1]").toString();
-        System.out.println("====================================================");
-        links = links.replaceAll("<script type=\"text/javascript\">var player_data=", "").replaceAll("</script>", "");
-        JSONObject jsonObject = JSONObject.fromObject(links);
-        String url = jsonObject.getString("url");
-        System.out.println(".m3u8 url :  " + url);*/
         MediaData mediaData = (MediaData) page.getRequest().getExtra("model");
 
         List<Selectable> nodes = page.getHtml().xpath("//div[@class='content']//section").nodes();
@@ -73,22 +75,43 @@ public class AppMovieProcessor implements PageProcessor {
             String label = node.xpath("//h2/text()").toString();
             System.out.println("label: " + label);
             resource.setLabel(label);
-            List<String> all = node.xpath("//ul//li//a/@href").all();
-            all.forEach(uri->{
-                System.out.println("uri=" + uri);
+            List<Selectable> selectables = node.xpath("//ul//li").nodes();
+            List<MediaDataResourceLink> resourceLinks = new ArrayList<>();
+            selectables.forEach(li->{
+                MediaDataResourceLink resourceLink = new MediaDataResourceLink();
+                String linkTitle = li.xpath("//li//a/text()").toString();
+                resourceLink.setTitle(linkTitle);
+                String href = li.xpath("//li//a/@href").toString();
+                System.out.println("标题： " + linkTitle);
                 try {
-                    Document doc = Jsoup.connect(baseUrl + uri).validateTLSCertificates(true).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();
+                    Document doc = Jsoup.connect(baseUrl + href).validateTLSCertificates(true).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();
+                    String first = doc.getElementsByClass("stui-player__video embed-responsive embed-responsive-16by9 clearfix").select("script").first().html();
+                    if (StringUtils.isNotBlank(first)) {
+                        first = first.trim().replaceAll("var player_data=", "");
+                        JSONObject jsonObject = JSONObject.fromObject(first);
+                        String url = jsonObject.getString("url");
+                        resourceLink.setLink(url.trim());
+                        System.out.println(".m3u8 url :  " + resourceLink.getLink());
+                    }
                     Thread.sleep(1200);
 
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+                resourceLinks.add(resourceLink);
             });
+
+            resource.setLinks(resourceLinks);
+            resources.add(resource);
         });
+        mediaData.setResources(resources);
+
+        mongoTemplate.save(mediaData);
     }
 
     public void dyDetail(Page page) {
         MediaData mediaData = new MediaData();
+        mediaData.setType(2);
         String name = page.getHtml().xpath("//div[@class='stui-content__detail fl-l']/h3/text()").toString();
         if (StringUtils.isNotBlank(name)) mediaData.setName(name);
         System.out.println("名称：" + name);
@@ -124,7 +147,7 @@ public class AppMovieProcessor implements PageProcessor {
 
         String uri = page.getHtml().xpath("//div[@class='playbtn']/a/@href").toString();
         System.out.println("uri=" + uri);
-        page.addTargetRequest(new Request(baseUrl+uri).setPriority(2).putExtra("model", mediaData));
+        page.addTargetRequest(new Request(baseUrl+uri).setPriority(1).putExtra("model", mediaData));
 
 
     }
@@ -133,18 +156,25 @@ public class AppMovieProcessor implements PageProcessor {
     public void dyList(Page page) {
 
         List<String> all = page.getHtml().xpath("//a[@class='stui-vodlist__thumb lazyload']/@href").all();
-        Integer index = 1;
+        Collections.reverse(all);
+        /*Integer index = 1;
         for (String data:all) {
-            if (index<=14) {
+            if (index<=3) {
                 String url = baseUrl + data;
-                page.addTargetRequest(new Request(url).setPriority(1));
+                page.addTargetRequest(new Request(url).setPriority(2));
             }
             index++;
-        }
-        /*for (String data:all) {
+        }*/
+        for (String data:all) {
             String url = baseUrl + data;
             page.addTargetRequest(new Request(url).setPriority(1));
-        }*/
+        }
+//        String url="https://app.movie/index.php/vod/type/id/1/page/1.html";
+        if (count>=640) {
+            page.addTargetRequest(new Request("https://app.movie/index.php/vod/type/id/" + type + "/page/" + count + ".html").setPriority(3));
+        }
+
+        count--;
 
 
     }
@@ -154,8 +184,4 @@ public class AppMovieProcessor implements PageProcessor {
         return site;
     }
 
-    public static void main(String[] args) {
-        String path = "https://app.movie/index.php/vod/show/by/time/id/1.html";
-        Spider.create(new AppMovieProcessor()).setDownloader(new PiankuDownloader()).addUrl(path).thread(1).run();
-    }
 }

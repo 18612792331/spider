@@ -18,7 +18,7 @@ public class MediaData {
     @Id
     private String id;
 
-    private Integer type; //电影 1，剧集 2，动漫 3
+    private Integer type; //电影 1，剧集 2，综艺 3, 动漫 4
 
     private String name;
 

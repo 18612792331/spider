@@ -20,17 +20,20 @@ public class TestResource {
     private MongoTemplate mongoTemplate;
 
     public static void main(String[] args) {
-        String aa = "https://www.pianku.tv/ajax/downurl/wNjRDZrhja_mv";
-        String pattern = "https://www\\.pianku\\.tv/ajax/downurl/(.{10})_mv";
+//        https://app.movie/index.php/vod/type/id/1/page/1.html
+        String aa = "https://app.movie/index.php/vod/type/id/1/page/1.html";
+        String pattern = "https://app\\.movie/index\\.php/vod/type/id/(.+)html";
         boolean isMatch = Pattern.matches(pattern, aa);
         System.out.println(isMatch);
     }
-    String url="https://app.movie/index.php/vod/show/by/time/id/1.html";
+    String url="https://app.movie/index.php/vod/type/id/2/page/643.html";
 
     @PostMapping("/test")
     public void test() {
         AppMovieProcessor processor = new AppMovieProcessor();
         processor.setMongoTemplate(mongoTemplate);
+        processor.setType(2);
+        processor.setCount(642);
         Spider.create(processor).setDownloader(new PiankuDownloader()).addUrl(url).thread(1).run();
     }
 
