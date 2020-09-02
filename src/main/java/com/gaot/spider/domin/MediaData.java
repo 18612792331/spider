@@ -12,7 +12,7 @@ import java.util.List;
  * @author: Mr.Gaot
  * @create: 2020-08-24 17:54
  **/
-@Document("data_media")
+@Document("data_temp")
 public class MediaData {
 
     @Id
