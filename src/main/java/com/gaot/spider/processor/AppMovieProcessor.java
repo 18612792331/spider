@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.gaot.spider.domin.MediaData;
 import com.gaot.spider.domin.MediaDataResource;
 import com.gaot.spider.domin.MediaDataResourceLink;
+import com.gaot.spider.resource.utils.JsoupUtils;
 import com.gaot.spider.resource.utils.SslUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
@@ -68,21 +69,17 @@ public class AppMovieProcessor implements PageProcessor {
         } else if (page.getUrl().regex("https://app\\.movie/index\\.php/vod/detail/(.+)html").match()) {
             dyDetail(page);
         } else if (page.getUrl().regex("https://app\\.movie/index\\.php/vod/play/(.+)html").match()) {
-            try {
-                dyPlay(page);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            dyPlay(page);
         }
     }
 
-    public void dyPlay(Page page) throws IOException {
+    public void dyPlay(Page page) {
         MediaData mediaData = (MediaData) page.getRequest().getExtra("model");
 
         List<Selectable> nodes = page.getHtml().xpath("//div[@class='content']//section").nodes();
         List<MediaDataResource> resources = new ArrayList<>();
         System.out.println("电影名：" + mediaData.getName());
-        Document doc = null;
+//        Document doc = null;
         for (Selectable node:nodes) {
             MediaDataResource resource = new MediaDataResource();
             String label = node.xpath("//h2/text()").toString();
@@ -98,21 +95,23 @@ public class AppMovieProcessor implements PageProcessor {
                 System.out.println("标题： " + linkTitle);
                 try {
                     Random random = new Random();
-                    int i = random.nextInt(35);
-                    doc = Jsoup.connect(baseUrl + href).proxy(String.valueOf(ipPools.get(i).get("ip")), (int) ipPools.get(i).get("port")).validateTLSCertificates(false).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();
-                    String first = doc.getElementsByClass("stui-player__video embed-responsive embed-responsive-16by9 clearfix").select("script").first().html();
-                    if (StringUtils.isNotBlank(first)) {
-                        first = first.trim().replaceAll("var player_data=", "");
-                        JSONObject jsonObject = JSONObject.parseObject(first);
-                        String url = jsonObject.getString("url");
-                        resourceLink.setLink(url.trim());
-                        System.out.println(".m3u8 url :  " + resourceLink.getLink());
+                    int i = random.nextInt(10);
+                    Document doc = JsoupUtils.getDocument(baseUrl + href);
+                    if (null != doc) {
+                        String first = doc.getElementsByClass("stui-player__video embed-responsive embed-responsive-16by9 clearfix").select("script").first().html();
+                        if (StringUtils.isNotBlank(first)) {
+                            first = first.trim().replaceAll("var player_data=", "");
+                            JSONObject jsonObject = JSONObject.parseObject(first);
+                            String url = jsonObject.getString("url");
+                            resourceLink.setLink(url.trim());
+                            System.out.println(".m3u8 url :  " + resourceLink.getLink());
+                        }
+                        Thread.sleep(JsoupUtils.getrandom(300, 500));
                     }
-                    Thread.sleep(500);
+
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    doc = Jsoup.connect(baseUrl + href).proxy(String.valueOf(ipPools.get(i).get("ip")), (int) ipPools.get(i).get("port")).validateTLSCertificates(false).userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36").timeout(20000).get();
                 }
                 resourceLinks.add(resourceLink);
             }
@@ -188,7 +187,7 @@ public class AppMovieProcessor implements PageProcessor {
             page.addTargetRequest(new Request(url).setPriority(1));
         }
 //        String url="https://app.movie/index.php/vod/type/id/1/page/1.html";
-        if (count >= 640) {
+        if (count >= 630) {
             page.addTargetRequest(new Request("https://app.movie/index.php/vod/type/id/" + type + "/page/" + count + ".html").setPriority(3));
         }
 

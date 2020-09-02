@@ -4,7 +4,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gaot.spider.download.Downloader;
 import com.gaot.spider.processor.AppMovieProcessor;
+import com.gaot.spider.resource.utils.JsoupUtils;
 import com.github.kevinsawicki.http.HttpRequest;
+import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,6 +18,7 @@ import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.proxy.Proxy;
 import us.codecraft.webmagic.proxy.SimpleProxyProvider;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -30,7 +35,7 @@ public class TestResource {
         boolean isMatch = Pattern.matches(pattern, aa);
         System.out.println(isMatch);
     }
-    String url="https://app.movie/index.php/vod/type/id/2/page/643.html";
+    String url="https://app.movie/index.php/vod/type/id/2/page/631.html";
 
     @PostMapping("/test")
     public void test() {
@@ -41,17 +46,32 @@ public class TestResource {
 
         ips = new Proxy[jsonArray.size()];
         List<Map<String, Object>> list = new ArrayList<>(jsonArray.size());
+        Document doc = null;
         for (int i = 0; i < jsonArray.size(); i++) {
             JSONObject data = (JSONObject) jsonArray.get(i);
             System.out.println(data.getString("ip"));
             System.out.println(data.getInteger("port"));
-            ips[i] = new Proxy(data.getString("ip"), data.getInteger("port"));
-            Map<String, Object> map = new HashMap<>();
-            map.put("ip", data.getString("ip"));
-            map.put("port", data.getInteger("port"));
-            list.add(map);
+            try {
+                doc = Jsoup.connect("https://app.movie/")
+                        .proxy(data.getString("ip"), data.getInteger("port"))
+                        .ignoreContentType(true).validateTLSCertificates(false)
+                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36")
+                        .timeout(1000*5).get();
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+            if (StringUtils.isNotBlank(doc.html())) {
+                ips[i] = new Proxy(data.getString("ip"), data.getInteger("port"));
+                Map<String, Object> map = new HashMap<>();
+                map.put("ip", data.getString("ip"));
+                map.put("port", data.getInteger("port"));
+                list.add(map);
+            }
+
         }
         System.out.println("size:" + list.size());
+        JsoupUtils.ipPools = list;
 
 
 
@@ -61,9 +81,9 @@ public class TestResource {
         AppMovieProcessor processor = new AppMovieProcessor();
         processor.setMongoTemplate(mongoTemplate);
         processor.setType(2);
-        processor.setCount(642);
+        processor.setCount(630);
         processor.setIpPools(list);
-        Spider.create(processor).setDownloader(downloader).addUrl(url).thread(2).run();
+        Spider.create(processor).setDownloader(downloader).addUrl(url).run();
     }
 
 }
