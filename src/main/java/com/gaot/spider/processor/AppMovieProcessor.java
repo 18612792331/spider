@@ -150,7 +150,7 @@ public class AppMovieProcessor implements PageProcessor {
         if (StringUtils.isNotBlank(state)) mediaData.setState(state.trim());
         System.out.println("状态：" + mediaData.getState());
         String actor = page.getHtml().xpath("//div[@class='stui-content__detail fl-l']/p[3]/text()").toString();
-        if (StringUtils.isNotBlank(actor)) mediaData.setActor(actor.split(","));
+//        if (StringUtils.isNotBlank(actor)) mediaData.setActor(actor.split(","));
         System.out.println("主演：" + actor);
         String director = page.getHtml().xpath("//div[@class='stui-content__detail fl-l']/p[4]/text()").toString();
         if (StringUtils.isNotBlank(director)) mediaData.setDirector(director);

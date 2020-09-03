@@ -33,13 +33,13 @@ public class MediaData {
 
     private String director; // 导演
 
-    private String[] actor; // 主演
+    private List<String> actor; // 主演
 
     private String genre; // 类型
 
     private String area; // 地区
 
-    private List<String> language;
+    private String language;
 
     @Field("release_date_str")
     private String releaseDateStr; // 上映时间
@@ -111,11 +111,11 @@ public class MediaData {
         this.director = director;
     }
 
-    public String[] getActor() {
+    public List<String> getActor() {
         return actor;
     }
 
-    public void setActor(String[] actor) {
+    public void setActor(List<String> actor) {
         this.actor = actor;
     }
 
@@ -127,11 +127,11 @@ public class MediaData {
         this.area = area;
     }
 
-    public List<String> getLanguage() {
+    public String getLanguage() {
         return language;
     }
 
-    public void setLanguage(List<String> language) {
+    public void setLanguage(String language) {
         this.language = language;
     }
 
