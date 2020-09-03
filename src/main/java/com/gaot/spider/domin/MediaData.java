@@ -12,7 +12,7 @@ import java.util.List;
  * @author: Mr.Gaot
  * @create: 2020-08-24 17:54
  **/
-@Document("data_temp")
+@Document("data_media")
 public class MediaData {
 
     @Id
@@ -28,9 +28,6 @@ public class MediaData {
 
     private String state;
 
-    @Field("video_update_descript")
-    private String videoUpdateDescript;
-
     private String director; // 导演
 
     private List<String> actor; // 主演
@@ -40,11 +37,6 @@ public class MediaData {
     private String area; // 地区
 
     private String language;
-
-    @Field("release_date_str")
-    private String releaseDateStr; // 上映时间
-
-    private String time; // 片场
 
     private String alias; // 别名
 
@@ -135,22 +127,6 @@ public class MediaData {
         this.language = language;
     }
 
-    public String getReleaseDateStr() {
-        return releaseDateStr;
-    }
-
-    public void setReleaseDateStr(String releaseDateStr) {
-        this.releaseDateStr = releaseDateStr;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
-
     public String getAlias() {
         return alias;
     }
@@ -165,14 +141,6 @@ public class MediaData {
 
     public void setIntroduce(String introduce) {
         this.introduce = introduce;
-    }
-
-    public String getVideoUpdateDescript() {
-        return videoUpdateDescript;
-    }
-
-    public void setVideoUpdateDescript(String videoUpdateDescript) {
-        this.videoUpdateDescript = videoUpdateDescript;
     }
 
     public List<MediaDataResource> getResources() {
@@ -198,13 +166,10 @@ public class MediaData {
                 ", type=" + type +
                 ", name='" + name + '\'' +
                 ", year=" + year +
-                ", videoUpdateDescript='" + videoUpdateDescript + '\'' +
                 ", actor=" + actor +
                 ", genre=" + genre +
                 ", area=" + area +
                 ", language=" + language +
-                ", releaseDateStr='" + releaseDateStr + '\'' +
-                ", time='" + time + '\'' +
                 ", alias='" + alias + '\'' +
                 ", introduce='" + introduce + '\'' +
                 '}';

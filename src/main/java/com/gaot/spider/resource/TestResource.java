@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.gaot.spider.download.Downloader;
 import com.gaot.spider.processor.AppMovieProcessor;
+import com.gaot.spider.processor.SmdyiProcessor;
 import com.gaot.spider.resource.utils.JsoupUtils;
 import com.gaot.spider.resource.utils.SslUtils;
 import com.github.kevinsawicki.http.HttpRequest;
@@ -36,70 +37,20 @@ public class TestResource {
         boolean isMatch = Pattern.matches(pattern, aa);
         System.out.println(isMatch);
     }
-    String url="https://app.movie/index.php/vod/type/id/2/page/631.html";
+
 
     @PostMapping("/test")
     public void test() throws Exception {
-
-        Proxy[] ips=null;
-        String response = HttpRequest.get("http://d.jghttp.golangapi.com/getip?num=200&type=2&pro=110000&city=110105&yys=0&port=1&pack=29459&ts=1&ys=0&cs=0&lb=1&sb=0&pb=4&mr=1&regions=").body();
-        JSONObject jsonObject = JSONObject.parseObject(response);
-        JSONArray jsonArray = jsonObject.getJSONArray("data");
-
-        ips = new Proxy[jsonArray.size()];
-        List<Map<String, Object>> list = new ArrayList<>(jsonArray.size());
-        Document doc = null;
-        for (int i = 0; i < jsonArray.size(); i++) {
-            JSONObject data = (JSONObject) jsonArray.get(i);
-            System.out.println(data.getString("ip"));
-            System.out.println(data.getInteger("port"));
-            try {
-                doc = Jsoup.connect("https://app.movie/")
-                        .proxy(data.getString("ip"), data.getInteger("port"))
-                        .ignoreContentType(true).validateTLSCertificates(false)
-                        .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36")
-                        .timeout(1000*5).get();
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
-            }
-            if (StringUtils.isNotBlank(doc.html())) {
-                ips[i] = new Proxy(data.getString("ip"), data.getInteger("port"));
-                Map<String, Object> map = new HashMap<>();
-                map.put("ip", data.getString("ip"));
-                map.put("port", data.getInteger("port"));
-                list.add(map);
-            }
-
-        }
-        System.out.println("size:" + list.size());
-        JsoupUtils.ipPools = list;
-
+        String url="http://www.smdyi.com/search.php?page=744&searchtype=5&tid=2";
         Downloader downloader = new Downloader();
-
-        downloader.setProxyProvider(SimpleProxyProvider.from(ips));
-        AppMovieProcessor processor = new AppMovieProcessor();
+        SmdyiProcessor processor = new SmdyiProcessor();
         processor.setMongoTemplate(mongoTemplate);
         processor.setType(2);
-        processor.setCount(630);
-        processor.setIpPools(list);
+        processor.setCount(743);
+
         Spider.create(processor).setDownloader(downloader).addUrl(url).run();
     }
 
-    @PostMapping("/test2")
-    public void test2() throws Exception {
-
-        Document doc = null;
-        for (int i=0;i<=1000;i++) {
-            doc = Jsoup.connect("http://www.smdyi.com/dy/palemoqiangjian/smplay-0-0.html").timeout(10 * 1000)
-                    .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36")
-                    .ignoreContentType(true).validateTLSCertificates(false)
-                    .get();
-            System.out.println(doc.html());
-            System.out.println(i+"--------------------------------------------------------------------------------------");
-            Thread.sleep(300);
-        }
-    }
 
 
 

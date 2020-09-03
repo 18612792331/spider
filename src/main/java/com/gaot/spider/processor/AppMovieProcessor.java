@@ -174,14 +174,6 @@ public class AppMovieProcessor implements PageProcessor {
 
         List<String> all = page.getHtml().xpath("//a[@class='stui-vodlist__thumb lazyload']/@href").all();
         Collections.reverse(all);
-        /*Integer index = 1;
-        for (String data:all) {
-            if (index<=3) {
-                String url = baseUrl + data;
-                page.addTargetRequest(new Request(url).setPriority(2));
-            }
-            index++;
-        }*/
         for (String data : all) {
             String url = baseUrl + data;
             page.addTargetRequest(new Request(url).setPriority(1));

@@ -44,7 +44,6 @@ public class JsoupUtils {
         /*int sleepTime = Integer.parseInt(PropertyReader.getProperties(SystemConstants.COM_CONSTANTS)
                 .getProperty(UtilsConstants.SLEEP_TIME_COUNT));*/
 
-        int sleepTime = 500;
         // En: if exception is occurred then retry loop is continue to run;
         // Jp: 異常を起きる場合、ループを続き実行する。
         for (int j = 1; j <= maxRetry; j++) {
@@ -52,19 +51,13 @@ public class JsoupUtils {
             try {
                 if (j != 1) {
 //                    ipPools.remove(currentIndex);
-                    Thread.sleep(getrandom(200, 400));
+                    Thread.sleep(getrandom(300, 500));
                 }
-                Random random = new Random();
-                int i = random.nextInt(ipPools.size());
-                currentIndex = i;
                 doc = Jsoup.connect(url).timeout(10 * 1000)
-                        .proxy(String.valueOf(ipPools.get(i).get("ip")), (int) ipPools.get(i).get("port"))
                         .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36")
-                        .ignoreContentType(true).ignoreHttpErrors(true).validateTLSCertificates(false)
+                        .ignoreContentType(true).validateTLSCertificates(false)
                         .get();
 
-                // En: normal finish situation,loop is broken.
-                // Jp: サービスが正常に終了した場合、ループを中止します。
                 // Zh: 正常终了的情况、终止循环。
                 break;
 
