@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -43,6 +44,9 @@ public class MediaData {
     private String introduce;
 
     private List<MediaDataResource> resources;
+
+    @Field("create_time")
+    private LocalDateTime createTime;
 
     public MediaData() {
     }
@@ -157,6 +161,14 @@ public class MediaData {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public LocalDateTime getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(LocalDateTime createTime) {
+        this.createTime = createTime;
     }
 
     @Override

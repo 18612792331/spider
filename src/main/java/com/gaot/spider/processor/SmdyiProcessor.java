@@ -14,6 +14,7 @@ import us.codecraft.webmagic.Spider;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Selectable;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,14 +63,13 @@ public class SmdyiProcessor implements PageProcessor {
     }
 
     public void dyList(Page page) {
-        System.out.println(page.getHtml());
         List<String> all = page.getHtml().xpath("//li[@class='mb']//div[@class='text]//a/@href").all();
         Collections.reverse(all);
         for (String href:all) {
             page.addTargetRequest(new Request(baseUrl + href).setPriority(1));
         }
 //        String url="http://www.smdyi.com/search.php?page=748&searchtype=5&tid=2";
-        if (count >= 730) {
+        if (count >= 500) {
             page.addTargetRequest(new Request("http://www.smdyi.com/search.php?page=" + count + "&searchtype=5&tid=" + type).setPriority(3));
         }
 
@@ -77,8 +77,10 @@ public class SmdyiProcessor implements PageProcessor {
     }
 
     public void dyDetail(Page page) {
+        System.out.println("=================================当前页数：" + (count+2) + "==================================");
         Document doc = null;
         MediaData mediaData = new MediaData();
+        mediaData.setCreateTime(LocalDateTime.now());
         mediaData.setType(type);
         String cover = page.getHtml().xpath("//div[@class='pic']/img/@src").toString();
         if (StringUtils.isNotBlank(cover)) mediaData.setCover(cover.trim());
@@ -146,12 +148,12 @@ public class SmdyiProcessor implements PageProcessor {
                         if (StringUtils.isNotBlank(doc.html())) {
                             String player = doc.getElementsByClass("player").select("script").html();
                             if (StringUtils.isNotBlank(player)) {
-                                System.out.println(title + " 播放链接：" + player);
+
                                 String result = getLink(player);
                                 if (StringUtils.isNotBlank(result)) {
                                     result = result.substring(0, result.indexOf(".m3u8")+5);
                                     resourceLink.setLink(result.trim());
-                                    System.out.println("匹配：" + resourceLink.getLink());
+                                    System.out.println(title + " 播放链接：" + resourceLink.getLink());
 
                                 } else {
                                     System.out.println("没有匹配到");
