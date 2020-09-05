@@ -35,12 +35,12 @@ public class TestResource {
 
     @PostMapping("/test")
     public void test() throws Exception {
-        String url="http://www.smdyi.com/search.php?page=569&searchtype=5&tid=2";
+        String url="http://www.smdyi.com/search.php?page=499&searchtype=5&tid=2";
         Downloader downloader = new Downloader();
         SmdyiProcessor processor = new SmdyiProcessor();
         processor.setMongoTemplate(mongoTemplate);
         processor.setType(2);
-        processor.setCount(568);
+        processor.setCount(498);
 
         Spider.create(processor).setDownloader(downloader).addUrl(url).run();
     }

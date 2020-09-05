@@ -69,7 +69,7 @@ public class SmdyiProcessor implements PageProcessor {
             page.addTargetRequest(new Request(baseUrl + href).setPriority(1));
         }
 //        String url="http://www.smdyi.com/search.php?page=748&searchtype=5&tid=2";
-        if (count >= 500) {
+        if (count >= 400) {
             page.addTargetRequest(new Request("http://www.smdyi.com/search.php?page=" + count + "&searchtype=5&tid=" + type).setPriority(3));
         }
 
