@@ -1,27 +1,54 @@
 package com.gaot.spider.resource;
 
-import com.gaot.spider.resource.utils.HtmlunitUtils;
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
+import com.gaot.spider.domin.MediaData;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
+@RestController
+@RequestMapping("/api/longmao")
 public class IndexResource {
 
+    private final Logger log = LoggerFactory.getLogger(IndexResource.class);
+
+    private final MongoTemplate mongoTemplate;
 
 
-    public static void main(String[] args) throws Exception {
-        String url = "https:\\/\\/s3.135-cdn.com\\/2020\\/08\\/27\\/lqTNbA720caxBXGi\\/index.m3u8";
-        String regex = "http(.+)m3u8";
-//        String regex = "https://www.subofm.com/index.php/vod/show/id/1.html";
+    public IndexResource(MongoTemplate mongoTemplate) {
+        this.mongoTemplate = mongoTemplate;
+    }
 
-        System.out.println(url.matches(regex));
+    @GetMapping("/page")
+    public Page<MediaData> getPage(@RequestParam("pageNo") Integer pageNo, @RequestParam("pageSize") Integer pageSize
+            , @RequestParam(value = "type", required = false) Integer type) {
+        log.info("分页查询，pageNo: {}, pageSize: {}, type: {}", pageNo, pageSize, type);
+        PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
+
+        Query query = new Query();
+        if (type!=null) {
+            query.addCriteria(Criteria.where("type").is(type));
+        }
+        query.with(Sort.by(
+                Sort.Order.desc("year")
+        ));
+        //计算总数
+        long total = mongoTemplate.count(query, MediaData.class);
+        //查询结果集
+        List<MediaData> list = mongoTemplate.find(query.with(pageRequest), MediaData.class);
+        Page<MediaData> page = new PageImpl(list, pageRequest, total);
+        return page;
     }
 }
