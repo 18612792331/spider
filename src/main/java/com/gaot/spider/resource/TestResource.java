@@ -14,6 +14,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,14 +34,14 @@ public class TestResource {
     private MongoTemplate mongoTemplate;
 
 
-    @PostMapping("/test")
+    @GetMapping("/test")
     public void test() throws Exception {
-        String url="http://www.smdyi.com/search.php?page=499&searchtype=5&tid=2";
+        String url="http://www.smdyi.com/search.php?page=228&searchtype=5&tid=4";
         Downloader downloader = new Downloader();
         SmdyiProcessor processor = new SmdyiProcessor();
         processor.setMongoTemplate(mongoTemplate);
-        processor.setType(2);
-        processor.setCount(498);
+        processor.setType(4);
+        processor.setCount(227);
 
         Spider.create(processor).setDownloader(downloader).addUrl(url).run();
     }
