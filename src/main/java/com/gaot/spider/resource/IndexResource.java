@@ -42,7 +42,7 @@ public class IndexResource {
             query.addCriteria(Criteria.where("type").is(type));
         }
         query.with(Sort.by(
-                Sort.Order.desc("year")
+                Sort.Order.desc("id")
         ));
         //计算总数
         long total = mongoTemplate.count(query, MediaData.class);
