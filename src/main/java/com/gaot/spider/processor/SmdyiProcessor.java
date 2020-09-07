@@ -52,7 +52,7 @@ public class SmdyiProcessor implements PageProcessor {
             System.out.println("第一层 ：" + page.getUrl().toString());
             dyList(page);
         //http://www.smdyi.com/dsj/tianlongbabuyueyu/
-        } else if (page.getUrl().regex("http://www\\.smdyi\\.com/(dsj|dm|dy)(.+)").match()) {
+        } else if (page.getUrl().regex("http://www\\.smdyi\\.com/(dsj|dm|dy|zy)(.+)").match()) {
             dyDetail(page);
         }
     }
@@ -69,7 +69,7 @@ public class SmdyiProcessor implements PageProcessor {
             page.addTargetRequest(new Request(baseUrl + href).setPriority(1));
         }
 //        String url="http://www.smdyi.com/search.php?page=748&searchtype=5&tid=2";
-        if (count >= 1) {
+        if (count >= 300) {
             page.addTargetRequest(new Request("http://www.smdyi.com/search.php?page=" + count + "&searchtype=5&tid=" + type).setPriority(3));
         }
 
@@ -128,12 +128,13 @@ public class SmdyiProcessor implements PageProcessor {
         if (nodes.size()>1 && StringUtils.isNotBlank(nodes.get(1).$("ul","text").toString())) mediaData.setIntroduce(nodes.get(1).$("ul","text").toString().trim());
         System.out.println("剧情：" + mediaData.getIntroduce());
         List<Selectable> playerList = null;
-        if (type==2 || type==4) {
-            playerList = page.getHtml().xpath("//div[@class='plist clearfix mainplist']").nodes();
-        }
         if (type==1) {
             playerList = page.getHtml().xpath("//div[@class='plist clearfix']").nodes();
+        } else {
+            playerList = page.getHtml().xpath("//div[@class='plist clearfix mainplist']").nodes();
         }
+
+
         List<MediaDataResource> resources = new ArrayList<>();
         int lineIndex=1;
         for (Selectable xl: playerList) {

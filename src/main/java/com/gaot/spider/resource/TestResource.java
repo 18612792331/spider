@@ -22,12 +22,12 @@ public class TestResource {
 
     @GetMapping("/test")
     public void test() throws Exception {
-        String url="http://www.smdyi.com/search.php?page=228&searchtype=5&tid=4";
+        String url="http://www.smdyi.com/search.php?page=401&searchtype=5&tid=2";
         Downloader downloader = new Downloader();
         SmdyiProcessor processor = new SmdyiProcessor();
         processor.setMongoTemplate(mongoTemplate);
-        processor.setType(4);
-        processor.setCount(227);
+        processor.setType(2);
+        processor.setCount(400);
 
         Spider.create(processor).setDownloader(downloader).addUrl(url).run();
     }
