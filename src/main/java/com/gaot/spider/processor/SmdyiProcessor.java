@@ -95,7 +95,7 @@ public class SmdyiProcessor implements PageProcessor {
         if (StringUtils.isNotBlank(alias)) mediaData.setAlias(alias.replaceAll("别名", "").replaceAll(":", "").trim());
         System.out.println("别名:" + mediaData.getAlias());
         String area = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[1]/a[1]/text()").toString();
-        if (StringUtils.isNotBlank(area)) mediaData.setArea(area.replaceAll("剧", ""));
+        if (StringUtils.isNotBlank(area)) mediaData.setArea(area.replaceAll("剧", "").trim());
         System.out.println("地区：" + mediaData.getArea());
         List<String> genreList = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[1]//a/text()").all();
         if (genreList.size()>0) {
