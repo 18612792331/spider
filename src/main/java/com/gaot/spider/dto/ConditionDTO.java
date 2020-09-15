@@ -5,6 +5,7 @@ import java.util.List;
 public class ConditionDTO {
 
     private List<AreaDTO> areaDTOList;
+    private List<String> genreList;
 
     public ConditionDTO() {
     }
@@ -15,5 +16,13 @@ public class ConditionDTO {
 
     public void setAreaDTOList(List<AreaDTO> areaDTOList) {
         this.areaDTOList = areaDTOList;
+    }
+
+    public List<String> getGenreList() {
+        return genreList;
+    }
+
+    public void setGenreList(List<String> genreList) {
+        this.genreList = genreList;
     }
 }
