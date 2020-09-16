@@ -37,8 +37,9 @@ public class IndexResource {
     public Page<MediaData> getPage(@RequestParam("pageNo") Integer pageNo, @RequestParam("pageSize") Integer pageSize
             , @RequestParam(value = "type", required = false) Integer type
             , @RequestParam(value = "keyword", required = false) String keyword
-            , @RequestParam(value = "area", required = false) String area, @RequestParam(value = "genre", required = false) String genre) {
-        log.info("分页查询，pageNo: {}, pageSize: {}, type: {}, keyword: {}, area: {}, genre :{}", pageNo, pageSize, type, keyword, area, genre);
+            , @RequestParam(value = "area", required = false) String area
+            , @RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "year", required = false) String year) {
+        log.info("分页查询，pageNo: {}, pageSize: {}, type: {}, keyword: {}, area: {}, genre :{}, year :{}", pageNo, pageSize, type, keyword, area, genre, year);
         PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
 
         Query query = new Query();
@@ -56,9 +57,23 @@ public class IndexResource {
             String[] areas = area.split(",");
             query.addCriteria(Criteria.where("area").in(areas));
         }
-        if (StringUtils.isNotBlank(genre)) {
+        if (StringUtils.isNotBlank(genre) && !genre.equals("全部")) {
             Pattern pattern= Pattern.compile("^.*"+genre+".*$", Pattern.CASE_INSENSITIVE);
             query.addCriteria(Criteria.where("genre").regex(pattern));
+        }
+        if (StringUtils.isNotBlank(year) && !genre.equals("全部")) {
+            if (year.equals("00年代")) {
+                query.addCriteria(Criteria.where("year").gte(2000).lte(2010));
+            } else if (year.equals("90年代")) {
+                query.addCriteria(Criteria.where("year").gte(1990).lte(2000));
+            } else if (year.equals("80年代")) {
+                query.addCriteria(Criteria.where("year").gte(1980).lte(1990));
+            } else if (year.equals("更早")) {
+                query.addCriteria(Criteria.where("year").lte(1980));
+            } else {
+                query.addCriteria(Criteria.where("year").is(Integer.valueOf(year)));
+            }
+
         }
         query.with(Sort.by(
                 Sort.Order.desc("year")

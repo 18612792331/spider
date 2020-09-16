@@ -69,7 +69,7 @@ public class SmdyiProcessor implements PageProcessor {
             page.addTargetRequest(new Request(baseUrl + href).setPriority(1));
         }
 //        String url="http://www.smdyi.com/search.php?page=748&searchtype=5&tid=2";
-        if (count >= 300) {
+        if (count >= 100) {
             page.addTargetRequest(new Request("http://www.smdyi.com/search.php?page=" + count + "&searchtype=5&tid=" + type).setPriority(3));
         }
 
@@ -112,7 +112,10 @@ public class SmdyiProcessor implements PageProcessor {
         String year = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[2]/tidyText()").toString();
         if (StringUtils.isNotBlank(year)) {
             year=year.replaceAll("年", "");
-            if (year.trim().matches("\\d+")) mediaData.setYear(Integer.valueOf(year.trim()));
+            if (year.trim().matches("\\d+")) {
+                mediaData.setYear(Integer.valueOf(year.trim()));
+                if (Integer.valueOf(year.trim())>2023) mediaData.setYear(2010);
+            }
         }
         System.out.println("年份：" + mediaData.getYear());
         String director = page.getHtml().xpath("//div[@class='info']/dl/div[2]/dd/text()").toString();
