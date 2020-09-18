@@ -69,7 +69,7 @@ public class SmdyiProcessor implements PageProcessor {
             page.addTargetRequest(new Request(baseUrl + href).setPriority(1));
         }
 //        String url="http://www.smdyi.com/search.php?page=748&searchtype=5&tid=2";
-        if (count >= 100) {
+        if (count >= 1) {
             page.addTargetRequest(new Request("http://www.smdyi.com/search.php?page=" + count + "&searchtype=5&tid=" + type).setPriority(3));
         }
 
@@ -94,30 +94,58 @@ public class SmdyiProcessor implements PageProcessor {
         String alias = page.getHtml().xpath("//div[@class='info']/dl/div/dd/allText()").regex(".*别名.+").toString();
         if (StringUtils.isNotBlank(alias)) mediaData.setAlias(alias.replaceAll("别名", "").replaceAll(":", "").trim());
         System.out.println("别名:" + mediaData.getAlias());
-        String area = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[1]/a[1]/text()").toString();
-        if (StringUtils.isNotBlank(area)) mediaData.setArea(area.replaceAll("剧", "").trim());
-        System.out.println("地区：" + mediaData.getArea());
-        List<String> genreList = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[1]//a/text()").all();
-        if (genreList.size()>0) {
-            String genre = "";
-            for (int i=0; i<genreList.size(); i++) {
-                if (i!=0) genre+=(genreList.get(i)+" ");
+        if (page.getHtml().xpath("//div[@class='info']").toString().contains("专题")) { //包含专题 dd+1
+            String area = page.getHtml().xpath("//div[@class='info']/dl/dd[3]/span[1]/a[1]/text()").toString();
+            if (StringUtils.isNotBlank(area)) mediaData.setArea(area.replaceAll("剧", "").trim());
+            System.out.println("地区：" + mediaData.getArea());
+            List<String> genreList = page.getHtml().xpath("//div[@class='info']/dl/dd[3]/span[1]//a/text()").all();
+            if (genreList.size()>0) {
+                String genre = "";
+                for (int i=0; i<genreList.size(); i++) {
+                    if (i!=0) genre+=(genreList.get(i)+" ");
 
+                }
+                if (StringUtils.isNotBlank(genre)) mediaData.setGenre(genre.trim());
+                System.out.println("类型：" + mediaData.getGenre());
             }
-            if (StringUtils.isNotBlank(genre)) mediaData.setGenre(genre.trim());
-            System.out.println("类型：" + mediaData.getGenre());
+
+
+            String year = page.getHtml().xpath("//div[@class='info']/dl/dd[3]/span[2]/tidyText()").toString();
+            if (StringUtils.isNotBlank(year)) {
+                year=year.replaceAll("年", "");
+                if (year.trim().matches("\\d+")) {
+                    mediaData.setYear(Integer.valueOf(year.trim()));
+                    if (Integer.valueOf(year.trim())>2023) mediaData.setYear(2010);
+                }
+            }
+            System.out.println("年份：" + mediaData.getYear());
+        } else {
+            String area = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[1]/a[1]/text()").toString();
+            if (StringUtils.isNotBlank(area)) mediaData.setArea(area.replaceAll("剧", "").trim());
+            System.out.println("地区：" + mediaData.getArea());
+            List<String> genreList = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[1]//a/text()").all();
+            if (genreList.size()>0) {
+                String genre = "";
+                for (int i=0; i<genreList.size(); i++) {
+                    if (i!=0) genre+=(genreList.get(i)+" ");
+
+                }
+                if (StringUtils.isNotBlank(genre)) mediaData.setGenre(genre.trim());
+                System.out.println("类型：" + mediaData.getGenre());
+            }
+
+
+            String year = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[2]/tidyText()").toString();
+            if (StringUtils.isNotBlank(year)) {
+                year=year.replaceAll("年", "");
+                if (year.trim().matches("\\d+")) {
+                    mediaData.setYear(Integer.valueOf(year.trim()));
+                    if (Integer.valueOf(year.trim())>2023) mediaData.setYear(2010);
+                }
+            }
+            System.out.println("年份：" + mediaData.getYear());
         }
 
-
-        String year = page.getHtml().xpath("//div[@class='info']/dl/dd[2]/span[2]/tidyText()").toString();
-        if (StringUtils.isNotBlank(year)) {
-            year=year.replaceAll("年", "");
-            if (year.trim().matches("\\d+")) {
-                mediaData.setYear(Integer.valueOf(year.trim()));
-                if (Integer.valueOf(year.trim())>2023) mediaData.setYear(2010);
-            }
-        }
-        System.out.println("年份：" + mediaData.getYear());
         String director = page.getHtml().xpath("//div[@class='info']/dl/div[2]/dd/text()").toString();
         if (StringUtils.isNotBlank(director)) mediaData.setDirector(director.trim());
         System.out.println("导演：" + mediaData.getDirector());
