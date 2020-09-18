@@ -49,7 +49,7 @@ public class IndexResource {
         PageRequest pageRequest = PageRequest.of(3, pageSize);
         Query query = new Query();
         if (type!=null) {
-            query.addCriteria(Criteria.where("type").is(type));
+            query.addCriteria(Criteria.where("type").is(4));
         }
         if (StringUtils.isNotBlank(keyword)) {
             Pattern pattern= Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE);
