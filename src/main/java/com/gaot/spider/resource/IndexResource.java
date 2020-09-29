@@ -35,7 +35,7 @@ public class IndexResource {
 
     @GetMapping("/tag")
     public Integer tag() {
-        return 0;
+        return 1;
     }
 
     @GetMapping("/page")
@@ -45,11 +45,11 @@ public class IndexResource {
             , @RequestParam(value = "area", required = false) String area
             , @RequestParam(value = "genre", required = false) String genre, @RequestParam(value = "year", required = false) String year) {
         log.info("分页查询，pageNo: {}, pageSize: {}, type: {}, keyword: {}, area: {}, genre :{}, year :{}", pageNo, pageSize, type, keyword, area, genre, year);
-//        PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
-        PageRequest pageRequest = PageRequest.of(3, pageSize);
+        PageRequest pageRequest = PageRequest.of(pageNo - 1, pageSize);
+
         Query query = new Query();
         if (type!=null) {
-            query.addCriteria(Criteria.where("type").is(4));
+            query.addCriteria(Criteria.where("type").is(type));
         }
         if (StringUtils.isNotBlank(keyword)) {
             Pattern pattern= Pattern.compile("^.*"+keyword+".*$", Pattern.CASE_INSENSITIVE);
@@ -80,12 +80,12 @@ public class IndexResource {
             }
 
         }
-//        query.with(Sort.by(
-//                Sort.Order.desc("year")
-//        ));
-//        query.with(Sort.by(
-//                Sort.Order.desc("createTime")
-//        ));
+        query.with(Sort.by(
+                Sort.Order.desc("year")
+        ));
+        query.with(Sort.by(
+                Sort.Order.desc("createTime")
+        ));
         //计算总数
         long total = mongoTemplate.count(query, MediaData.class);
         //查询结果集
